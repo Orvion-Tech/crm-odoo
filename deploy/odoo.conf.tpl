@@ -1,0 +1,22 @@
+[options]
+admin_passwd = __ADMIN__
+db_host = localhost
+db_port = 5432
+db_user = odoo
+db_password = __DBPASS__
+db_name = odoo_prod
+list_db = False
+addons_path = /opt/odoo/addons,/opt/odoo/custom_addons
+data_dir = /opt/odoo/data
+logfile = /var/log/odoo/odoo.log
+log_level = info
+xmlrpc_port = 8069
+gevent_port = 8072
+workers = 2
+max_cron_threads = 1
+limit_memory_hard = 2684354560
+limit_memory_soft = 2147483648
+limit_request = 8192
+limit_time_cpu = 600
+limit_time_real = 1200
+proxy_mode = True
