@@ -1,0 +1,338 @@
+// =====================================================
+// CRM Custom — Brand Theme
+// Scoped to .o_crm_custom_form so it never bleeds
+// into other Odoo modules.
+// =====================================================
+
+$crm-primary: #3b3a73;     // deep indigo
+$crm-primary-dk: #2a2956;
+$crm-accent: #f59e0b;      // warm amber
+$crm-success: #16a34a;
+$crm-danger: #dc2626;
+$crm-bg-soft: #f8f9ff;
+$crm-border: #e2e3f5;
+
+.o_crm_custom_form {
+
+    // ---------- Form sheet container ----------
+    .o_form_sheet_bg {
+        background: linear-gradient(180deg, $crm-bg-soft 0%, #ffffff 220px);
+    }
+
+    .o_form_sheet {
+        border: 1px solid $crm-border;
+        border-radius: 14px;
+        box-shadow: 0 6px 24px rgba($crm-primary, 0.07);
+        padding-top: 28px;
+    }
+
+    // ---------- Header bar action buttons ----------
+    .o_form_statusbar .o_statusbar_buttons {
+        .btn.oe_highlight,
+        .btn.btn-primary {
+            background: $crm-primary;
+            border-color: $crm-primary;
+            color: white;
+            font-weight: 500;
+            transition: all 0.15s ease;
+
+            &:hover {
+                background: $crm-primary-dk;
+                border-color: $crm-primary-dk;
+                box-shadow: 0 3px 8px rgba($crm-primary, 0.25);
+            }
+        }
+    }
+
+    // ---------- Stage chevrons: give text breathing room ----------
+    // Odoo's default chevron/arrow shape clips text on multi-word labels
+    // ("In Progress", "Confirmed", etc.). We don't touch the arrow — only
+    // increase horizontal padding so text doesn't run under the arrow tip.
+    .o_form_statusbar .o_statusbar_status {
+        .o_arrow_button,
+        > .btn {
+            padding-left: 1.4rem !important;
+            padding-right: 2rem !important;
+            white-space: nowrap;
+        }
+    }
+
+    // ---------- Title block (reference + name + chips) ----------
+    .oe_title {
+        margin-bottom: 24px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid $crm-border;
+
+        > .o_form_label.text-muted,
+        > span.text-muted {
+            color: $crm-accent !important;
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        h1 {
+            margin-top: 4px;
+            margin-bottom: 8px;
+            input.o_input,
+            .o_field_widget {
+                color: $crm-primary;
+                font-weight: 700;
+                font-size: 1.9rem;
+            }
+        }
+    }
+
+    // ---------- Stat-button box ----------
+    .oe_button_box {
+        .oe_stat_button {
+            border: 1px solid $crm-border;
+            border-radius: 12px;
+            background: white;
+            transition: all 0.15s ease;
+            margin: 4px;
+
+            &:hover {
+                border-color: $crm-primary;
+                box-shadow: 0 6px 14px rgba($crm-primary, 0.15);
+                transform: translateY(-2px);
+            }
+
+            .o_stat_value,
+            .o_stat_text {
+                color: $crm-primary;
+                font-weight: 600;
+            }
+
+            > .o_button_icon,
+            > div > .fa {
+                color: $crm-accent;
+            }
+        }
+    }
+
+    // ---------- Group section headings ----------
+    .o_inner_group .o_horizontal_separator,
+    .o_group > .o_horizontal_separator {
+        color: $crm-primary !important;
+        font-weight: 700;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 2px solid $crm-accent;
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+        display: inline-block;
+    }
+
+    // ---------- Field labels ----------
+    .o_form_label {
+        color: lighten($crm-primary, 18%);
+        font-weight: 500;
+    }
+
+    // ---------- Badges (priority chips, customer_type, source) ----------
+    .badge {
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-weight: 500;
+        letter-spacing: 0.4px;
+        font-size: 0.75rem;
+
+        &.text-bg-info,
+        &.bg-info {
+            background: $crm-primary !important;
+            color: white !important;
+        }
+
+        &.text-bg-secondary,
+        &.bg-secondary {
+            background: $crm-accent !important;
+            color: white !important;
+        }
+
+        &.text-bg-success {
+            background: $crm-success !important;
+        }
+
+        &.text-bg-danger {
+            background: $crm-danger !important;
+        }
+    }
+
+    // ---------- Notebook tabs ----------
+    .o_notebook_headers .nav-tabs {
+        border-bottom: 2px solid $crm-border;
+
+        .nav-link {
+            color: lighten($crm-primary, 25%);
+            font-weight: 500;
+            border: none;
+
+            &.active {
+                color: $crm-primary;
+                border-bottom: 3px solid $crm-accent;
+                background: transparent;
+            }
+
+            &:hover:not(.active) {
+                color: $crm-primary;
+                border-bottom: 3px solid lighten($crm-accent, 25%);
+            }
+        }
+    }
+
+    // ---------- Inputs on hover/focus ----------
+    .o_field_widget input.o_input:focus,
+    .o_field_widget textarea.o_input:focus {
+        border-color: $crm-primary;
+        box-shadow: 0 0 0 2px rgba($crm-primary, 0.15);
+    }
+
+    // ---------- Web ribbon tweak ----------
+    .ribbon {
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    // ---------- Subtotal footer (lead products, quotation lines) ----------
+    .oe_subtotal_footer {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: $crm-primary;
+        border-top: 2px solid $crm-accent;
+        padding-top: 8px;
+    }
+
+    // ---------- Chatter section ----------
+    .o-mail-Chatter {
+        border-top: 1px solid $crm-border;
+        padding-top: 12px;
+    }
+}
+
+// ---------- Dashboard ----------
+.o_crm_dashboard {
+    .o_form_sheet {
+        background: linear-gradient(180deg, $crm-bg-soft 0%, #ffffff 220px);
+    }
+}
+
+.o_crm_dashboard_header {
+    padding: 12px 12px 0 12px;
+    h2 {
+        color: $crm-primary;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+}
+
+.o_crm_dashboard_section_label {
+    color: $crm-primary;
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid $crm-accent;
+    padding: 16px 12px 4px 12px;
+    margin: 16px 12px 8px 12px;
+    display: inline-block;
+}
+
+.o_crm_dashboard_grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 12px;
+
+    .o_crm_dashboard_tile {
+        background: white;
+        border: 1px solid $crm-border;
+        border-radius: 14px;
+        padding: 22px 20px;
+        text-align: left;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        font-family: inherit;
+
+        &:hover {
+            border-color: $crm-primary;
+            box-shadow: 0 6px 18px rgba($crm-primary, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .tile-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: $crm-primary;
+            font-weight: 600;
+        }
+        .tile-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: $crm-primary;
+            margin-top: 6px;
+            line-height: 1.1;
+        }
+        .tile-sub {
+            font-size: 0.85rem;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        &.tile-warning {
+            border-left: 4px solid $crm-accent;
+            .tile-value { color: $crm-accent; }
+        }
+        &.tile-danger {
+            border-left: 4px solid $crm-danger;
+            .tile-value { color: $crm-danger; }
+        }
+        &.tile-success {
+            border-left: 4px solid $crm-success;
+            .tile-value { color: $crm-success; }
+        }
+    }
+}
+
+@media (max-width: 1100px) {
+    .o_crm_dashboard_grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+// ---------- List view scoped class ----------
+.o_crm_custom_list {
+
+    // Header row
+    thead {
+        background: linear-gradient(90deg, $crm-primary 0%, $crm-primary-dk 100%);
+        th {
+            color: white !important;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            border: none !important;
+        }
+    }
+
+    // Body rows
+    tbody {
+        tr.o_data_row {
+            transition: background 0.1s ease;
+
+            &:hover {
+                background: $crm-bg-soft !important;
+            }
+        }
+    }
+
+    // Badge cells use the same brand badge styling
+    .badge {
+        border-radius: 999px;
+        padding: 3px 10px;
+        font-weight: 500;
+        font-size: 0.72rem;
+    }
+}

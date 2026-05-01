@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_crm_warehouse_list" model="ir.ui.view">
+        <field name="name">crm.warehouse.list</field>
+        <field name="model">crm.warehouse</field>
+        <field name="arch" type="xml">
+            <list string="Warehouses" class="o_crm_custom_list">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="city"/>
+                <field name="country_id"/>
+                <field name="manager_id"/>
+                <field name="product_count" string="Products"/>
+                <field name="is_default" widget="boolean_toggle"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_crm_warehouse_form" model="ir.ui.view">
+        <field name="name">crm.warehouse.form</field>
+        <field name="model">crm.warehouse</field>
+        <field name="arch" type="xml">
+            <form string="Warehouse" class="o_crm_custom_form">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_inventory" type="object"
+                                class="oe_stat_button" icon="fa-cubes">
+                            <field name="product_count" widget="statinfo" string="Products"/>
+                        </button>
+                        <button name="action_view_moves" type="object"
+                                class="oe_stat_button" icon="fa-exchange"
+                                string="Movements"/>
+                    </div>
+                    <widget name="web_ribbon" title="Default" bg_color="text-bg-success"
+                            invisible="not is_default"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Warehouse</span>
+                        <h1>
+                            <field name="name" placeholder="Main Warehouse"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code" placeholder="WH-MAIN"/>
+                            <field name="manager_id"/>
+                            <field name="phone"/>
+                            <field name="is_default"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="street"/>
+                            <field name="city"/>
+                            <field name="state_id" options="{'no_create': True}"/>
+                            <field name="zip"/>
+                            <field name="country_id" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Stock On Hand">
+                            <field name="inventory_ids" readonly="1">
+                                <list>
+                                    <field name="product_id"/>
+                                    <field name="quantity" sum="On Hand"/>
+                                    <field name="reorder_min"/>
+                                    <field name="is_low_stock" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_crm_warehouse_search" model="ir.ui.view">
+        <field name="name">crm.warehouse.search</field>
+        <field name="model">crm.warehouse</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="city"/>
+                <field name="manager_id"/>
+                <filter string="Default" name="filter_default"
+                        domain="[('is_default', '=', True)]"/>
+                <filter string="Archived" name="filter_archived"
+                        domain="[('active', '=', False)]"/>
+                <group string="Group By">
+                    <filter string="Country" name="group_country"
+                            context="{'group_by': 'country_id'}"/>
+                    <filter string="Manager" name="group_manager"
+                            context="{'group_by': 'manager_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_crm_warehouse" model="ir.actions.act_window">
+        <field name="name">Warehouses</field>
+        <field name="res_model">crm.warehouse</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_crm_warehouse_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first warehouse</p>
+            <p>Warehouses hold stock per product. Sales Orders deduct from a chosen warehouse on delivery.</p>
+        </field>
+    </record>
+
+</odoo>

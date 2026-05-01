@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="view_quotation_list" model="ir.ui.view">
+        <field name="name">crm.quotation.list</field>
+        <field name="model">crm.quotation</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'draft'"
+                  decoration-warning="state == 'sent'"
+                  decoration-success="state in ('accepted', 'ordered')"
+                  decoration-muted="state in ('rejected', 'expired', 'superseded')">
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="contact_name"/>
+                <field name="user_id"/>
+                <field name="date"/>
+                <field name="validity_date"/>
+                <field name="amount_untaxed" widget="monetary"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="revision_number"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'sent'"
+                       decoration-success="state in ('accepted', 'ordered')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_quotation_form" model="ir.ui.view">
+        <field name="name">crm.quotation.form</field>
+        <field name="model">crm.quotation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_send" type="object"
+                            string="Send" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_accept" type="object"
+                            string="Mark Accepted" class="oe_highlight"
+                            invisible="state not in ('sent',)"/>
+                    <button name="action_reject" type="object"
+                            string="Mark Rejected"
+                            invisible="state not in ('sent',)"/>
+                    <button name="action_create_order" type="object"
+                            string="Create Order" class="oe_highlight"
+                            invisible="state not in ('accepted', 'ordered')"/>
+                    <button name="action_create_revision" type="object"
+                            string="Revise" class="oe_highlight"
+                            invisible="state == 'draft'"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state in ('draft', 'superseded')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,sent,accepted"/>
+                </header>
+                <sheet readonly="is_locked">
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_orders" type="object"
+                                class="oe_stat_button" icon="fa-shopping-cart"
+                                invisible="sale_order_count == 0">
+                            <field name="sale_order_count" widget="statinfo" string="Orders"/>
+                        </button>
+                        <button name="action_view_original" type="object"
+                                class="oe_stat_button" icon="fa-arrow-left"
+                                invisible="not parent_id">
+                            <div class="o_stat_text">Original</div>
+                        </button>
+                        <button name="action_view_revisions" type="object"
+                                class="oe_stat_button" icon="fa-code-fork"
+                                invisible="revision_count == 0">
+                            <field name="revision_count" widget="statinfo" string="Revisions"/>
+                        </button>
+                    </div>
+                    <field name="is_locked" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="reference" class="oe_edit_only"/>
+                        <h1><field name="reference" readonly="1"/></h1>
+                        <label for="name" class="oe_edit_only"/>
+                        <h2><field name="name" placeholder="Quotation Title"/></h2>
+                    </div>
+                    <group>
+                        <group string="Customer">
+                            <field name="partner_id"/>
+                            <field name="contact_name"/>
+                            <field name="phone"/>
+                            <field name="email"/>
+                        </group>
+                        <group string="Quotation">
+                            <field name="lead_id"
+                                   readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                            <field name="user_id"/>
+                            <field name="date"/>
+                            <field name="validity_date"/>
+                            <field name="is_expired" invisible="not is_expired"/>
+                            <field name="parent_id" readonly="1" invisible="not parent_id"/>
+                            <field name="revision_number" readonly="1" invisible="revision_number == 1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price" widget="monetary"/>
+                                    <field name="discount"/>
+                                    <field name="subtotal" widget="monetary"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="amount_untaxed" widget="monetary"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                        </page>
+                        <page string="Terms &amp; Conditions">
+                            <field name="terms_conditions" placeholder="Payment terms, delivery, warranty..."/>
+                        </page>
+                        <page string="Internal Note">
+                            <field name="note" placeholder="Internal-only notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban -->
+    <record id="view_quotation_kanban" model="ir.ui.view">
+        <field name="name">crm.quotation.kanban</field>
+        <field name="model">crm.quotation</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="state"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="o_kanban_record_top">
+                                <strong><field name="reference"/></strong>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <div t-if="record.partner_id.raw_value">
+                                    <i class="fa fa-user" title="Customer" role="img" aria-label="Customer"/> <field name="partner_id"/>
+                                </div>
+                                <div><i class="fa fa-money" title="Amount" role="img" aria-label="Amount"/> <field name="amount_untaxed" widget="monetary"/></div>
+                                <div t-if="record.validity_date.raw_value">
+                                    <i class="fa fa-calendar" title="Valid until" role="img" aria-label="Valid until"/> <field name="validity_date"/>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                                <field name="date"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Pivot/Graph -->
+    <record id="view_quotation_pivot" model="ir.ui.view">
+        <field name="name">crm.quotation.pivot</field>
+        <field name="model">crm.quotation</field>
+        <field name="arch" type="xml">
+            <pivot string="Quotation Analysis" sample="1">
+                <field name="state" type="row"/>
+                <field name="date" interval="month" type="col"/>
+                <field name="amount_untaxed" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_quotation_graph" model="ir.ui.view">
+        <field name="name">crm.quotation.graph</field>
+        <field name="model">crm.quotation</field>
+        <field name="arch" type="xml">
+            <graph string="Quotation Analysis" type="bar" sample="1">
+                <field name="state"/>
+                <field name="amount_untaxed" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Search -->
+    <record id="view_quotation_search" model="ir.ui.view">
+        <field name="name">crm.quotation.search</field>
+        <field name="model">crm.quotation</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <field name="lead_id"/>
+                <filter string="My Quotations" name="my_quotations"
+                        domain="['|', ('user_id', '=', uid), ('create_uid', '=', uid)]"/>
+                <separator/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Sent" name="sent" domain="[('state', '=', 'sent')]"/>
+                <filter string="Accepted" name="accepted" domain="[('state', '=', 'accepted')]"/>
+                <filter string="Rejected" name="rejected" domain="[('state', '=', 'rejected')]"/>
+                <filter string="Expired" name="expired" domain="[('state', '=', 'expired')]"/>
+                <filter string="Ordered" name="ordered" domain="[('state', '=', 'ordered')]"/>
+                <separator/>
+                <filter string="Hide Superseded" name="hide_superseded"
+                        domain="[('state', '!=', 'superseded')]"/>
+                <group>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Salesperson" name="group_user"
+                            context="{'group_by': 'user_id'}"/>
+                    <filter string="Customer" name="group_partner"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter string="Quotation Date" name="group_date"
+                            context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_quotation" model="ir.actions.act_window">
+        <field name="name">Quotations</field>
+        <field name="res_model">crm.quotation</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
+        <field name="search_view_id" ref="view_quotation_search"/>
+        <field name="context">{'search_default_my_quotations': 1, 'search_default_hide_superseded': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first quotation</p>
+            <p>Send formal proposals to your leads.</p>
+        </field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_quotation_main"
+              name="Quotations"
+              parent="menu_crm_root"
+              sequence="18"/>
+
+    <menuitem id="menu_quotation"
+              name="All Quotations"
+              parent="menu_quotation_main"
+              action="action_quotation"
+              sequence="10"/>
+
+</odoo>

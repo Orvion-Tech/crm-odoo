@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="view_sale_order_list" model="ir.ui.view">
+        <field name="name">crm.sale.order.list</field>
+        <field name="model">crm.sale.order</field>
+        <field name="arch" type="xml">
+            <list sample="1"
+                  class="o_crm_custom_list"
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state in ('confirmed', 'in_progress')"
+                  decoration-success="state in ('delivered', 'done')"
+                  decoration-muted="state == 'cancelled'">
+                <field name="reference"/>
+                <field name="name" optional="hide"/>
+                <field name="partner_id"/>
+                <field name="contact_name" optional="show"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="date"/>
+                <field name="expected_delivery_date" optional="show"/>
+                <field name="amount_total" widget="monetary" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="payment_terms" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('confirmed', 'in_progress')"
+                       decoration-success="state in ('delivered', 'done')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_sale_order_form" model="ir.ui.view">
+        <field name="name">crm.sale.order.form</field>
+        <field name="model">crm.sale.order</field>
+        <field name="arch" type="xml">
+            <form class="o_crm_custom_form">
+                <header>
+                    <button name="action_confirm" type="object"
+                            string="Confirm Order" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_start" type="object"
+                            string="Start Fulfillment" class="oe_highlight"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_deliver" type="object"
+                            string="Mark Delivered" class="btn btn-success"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_done" type="object"
+                            string="Mark Done" class="btn btn-success"
+                            invisible="state != 'delivered'"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_send_confirmation" type="object"
+                            string="Send Confirmation"
+                            invisible="state in ('draft', 'done', 'cancelled')"/>
+                    <button name="action_create_invoice" type="object"
+                            string="Create Invoice" class="btn btn-primary"
+                            invisible="state not in ('confirmed', 'in_progress', 'delivered', 'done')"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel" class="btn btn-secondary"
+                            invisible="state in ('done', 'cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,in_progress,delivered,done"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Done"
+                            bg_color="text-bg-success"
+                            invisible="state != 'done'"/>
+                    <widget name="web_ribbon" title="Cancelled"
+                            bg_color="text-bg-danger"
+                            invisible="state != 'cancelled'"/>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_quotation" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="not quotation_id">
+                            <div class="o_stat_text">Quotation</div>
+                        </button>
+                        <button name="action_view_invoices" type="object"
+                                class="oe_stat_button" icon="fa-money"
+                                invisible="invoice_count == 0">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">
+                            <field name="reference" readonly="1"/>
+                        </span>
+                        <h1>
+                            <field name="name" placeholder="e.g. Smart Locks for ABC Hotel"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Customer">
+                            <field name="partner_id"/>
+                            <field name="contact_name"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
+                        </group>
+                        <group string="Order Info">
+                            <field name="quotation_id"
+                                   readonly="state != 'draft'"
+                                   options="{'no_create': True}"
+                                   domain="[('state', 'in', ('accepted', 'ordered'))]"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="date"/>
+                            <field name="confirmation_date"
+                                   invisible="not confirmation_date"/>
+                            <field name="expected_delivery_date"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Payment">
+                            <field name="payment_terms"/>
+                            <field name="payment_terms_custom"
+                                   invisible="payment_terms != 'custom'"
+                                   required="payment_terms == 'custom'"/>
+                        </group>
+                        <group string="Shipping">
+                            <field name="warehouse_id"
+                                   options="{'no_create': True}"
+                                   readonly="state == 'delivered' or state == 'done'"/>
+                            <field name="delivery_address"
+                                   placeholder="Street, city, pincode..."
+                                   required="state == 'draft'"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Lines" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price" widget="monetary"/>
+                                    <field name="discount"/>
+                                    <field name="subtotal" widget="monetary"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="amount_total" widget="monetary"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                        </page>
+                        <page string="Terms &amp; Conditions" name="terms">
+                            <field name="terms_conditions" placeholder="Payment, delivery, warranty..."/>
+                        </page>
+                        <page string="Internal Note" name="note">
+                            <field name="internal_note" placeholder="Internal-only notes..."/>
+                        </page>
+                        <page string="Stock Movements" name="stock_moves"
+                              invisible="not stock_move_ids">
+                            <field name="stock_move_ids" readonly="1">
+                                <list decoration-success="state == 'done'"
+                                      decoration-muted="state == 'cancelled'">
+                                    <field name="date"/>
+                                    <field name="reference"/>
+                                    <field name="move_type"/>
+                                    <field name="product_id"/>
+                                    <field name="warehouse_id"/>
+                                    <field name="quantity"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-muted="state == 'cancelled'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban -->
+    <record id="view_sale_order_kanban" model="ir.ui.view">
+        <field name="name">crm.sale.order.kanban</field>
+        <field name="model">crm.sale.order</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="state"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="o_kanban_record_top">
+                                <strong><field name="reference"/></strong>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <div t-if="record.partner_id.raw_value">
+                                    <i class="fa fa-user" title="Customer" role="img" aria-label="Customer"/> <field name="partner_id"/>
+                                </div>
+                                <div><i class="fa fa-money" title="Amount" role="img" aria-label="Amount"/> <field name="amount_total" widget="monetary"/></div>
+                                <div t-if="record.expected_delivery_date.raw_value">
+                                    <i class="fa fa-truck" title="Delivery" role="img" aria-label="Delivery"/> <field name="expected_delivery_date"/>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                                <field name="date"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Pivot/Graph -->
+    <record id="view_sale_order_pivot" model="ir.ui.view">
+        <field name="name">crm.sale.order.pivot</field>
+        <field name="model">crm.sale.order</field>
+        <field name="arch" type="xml">
+            <pivot string="Order Analysis" sample="1">
+                <field name="state" type="row"/>
+                <field name="date" interval="month" type="col"/>
+                <field name="amount_total" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_sale_order_graph" model="ir.ui.view">
+        <field name="name">crm.sale.order.graph</field>
+        <field name="model">crm.sale.order</field>
+        <field name="arch" type="xml">
+            <graph string="Order Analysis" type="bar" sample="1">
+                <field name="state"/>
+                <field name="amount_total" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Search -->
+    <record id="view_sale_order_search" model="ir.ui.view">
+        <field name="name">crm.sale.order.search</field>
+        <field name="model">crm.sale.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <field name="quotation_id"/>
+                <filter string="My Orders" name="my_orders"
+                        domain="['|', ('user_id', '=', uid), ('create_uid', '=', uid)]"/>
+                <separator/>
+                <filter string="Open" name="open"
+                        domain="[('state', 'not in', ('done', 'cancelled'))]"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmed" name="confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter string="In Progress" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Delivered" name="delivered" domain="[('state', '=', 'delivered')]"/>
+                <filter string="Done" name="done" domain="[('state', '=', 'done')]"/>
+                <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <group>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Salesperson" name="group_user"
+                            context="{'group_by': 'user_id'}"/>
+                    <filter string="Customer" name="group_partner"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter string="Order Date" name="group_date"
+                            context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_sale_order" model="ir.actions.act_window">
+        <field name="name">Sales Orders</field>
+        <field name="res_model">crm.sale.order</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
+        <field name="search_view_id" ref="view_sale_order_search"/>
+        <field name="context">{'search_default_my_orders': 1, 'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No orders yet</p>
+            <p>Confirmed orders show up here once a quotation is accepted.</p>
+        </field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_sale_order_main"
+              name="Sales Orders"
+              parent="menu_crm_root"
+              sequence="22"/>
+
+    <menuitem id="menu_sale_order"
+              name="All Orders"
+              parent="menu_sale_order_main"
+              action="action_sale_order"
+              sequence="10"/>
+
+</odoo>

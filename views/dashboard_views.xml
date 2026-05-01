@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Form View: tile dashboard -->
+    <record id="view_crm_dashboard_form" model="ir.ui.view">
+        <field name="name">crm.dashboard.form</field>
+        <field name="model">crm.dashboard</field>
+        <field name="arch" type="xml">
+            <form class="o_crm_custom_form o_crm_dashboard"
+                  create="false" edit="false" delete="false">
+                <sheet>
+                    <field name="currency_id" invisible="1"/>
+
+                    <div class="o_crm_dashboard_header">
+                        <h2>CRM Dashboard</h2>
+                        <p class="text-muted">Snapshot of your pipeline. Click any tile to drill in.</p>
+                    </div>
+
+                    <!-- Section: Pipeline -->
+                    <div class="o_crm_dashboard_section_label">Pipeline</div>
+                    <div class="o_crm_dashboard_grid">
+                        <button name="action_open_inquiries" type="object"
+                                class="o_crm_dashboard_tile">
+                            <div class="tile-label">Open Inquiries</div>
+                            <div class="tile-value"><field name="open_inquiries"/></div>
+                            <div class="tile-sub">awaiting follow-up</div>
+                        </button>
+
+                        <button name="action_open_leads" type="object"
+                                class="o_crm_dashboard_tile">
+                            <div class="tile-label">Active Leads</div>
+                            <div class="tile-value"><field name="active_leads"/></div>
+                            <div class="tile-sub">in pipeline</div>
+                        </button>
+
+                        <button name="action_open_quotations_sent" type="object"
+                                class="o_crm_dashboard_tile">
+                            <div class="tile-label">Quotations Sent</div>
+                            <div class="tile-value"><field name="quotations_sent"/></div>
+                            <div class="tile-sub">awaiting response</div>
+                        </button>
+
+                        <button name="action_open_quotations_expiring" type="object"
+                                class="o_crm_dashboard_tile tile-warning">
+                            <div class="tile-label">Expiring ≤ 7 days</div>
+                            <div class="tile-value"><field name="quotations_expiring"/></div>
+                            <div class="tile-sub">follow up now</div>
+                        </button>
+                    </div>
+
+                    <!-- Section: Orders & Cash -->
+                    <div class="o_crm_dashboard_section_label">Orders &amp; Cash</div>
+                    <div class="o_crm_dashboard_grid">
+                        <button name="action_open_orders" type="object"
+                                class="o_crm_dashboard_tile">
+                            <div class="tile-label">Open Orders</div>
+                            <div class="tile-value"><field name="open_orders"/></div>
+                            <div class="tile-sub">
+                                <field name="open_orders_value" widget="monetary"/> in flight
+                            </div>
+                        </button>
+
+                        <button name="action_open_unpaid_invoices" type="object"
+                                class="o_crm_dashboard_tile">
+                            <div class="tile-label">Unpaid Invoices</div>
+                            <div class="tile-value"><field name="unpaid_invoices"/></div>
+                            <div class="tile-sub">
+                                <field name="unpaid_amount" widget="monetary"/> outstanding
+                            </div>
+                        </button>
+
+                        <button name="action_open_overdue_invoices" type="object"
+                                class="o_crm_dashboard_tile tile-danger">
+                            <div class="tile-label">Overdue Invoices</div>
+                            <div class="tile-value"><field name="overdue_invoices"/></div>
+                            <div class="tile-sub">
+                                <field name="overdue_amount" widget="monetary"/> past due
+                            </div>
+                        </button>
+
+                        <button name="action_open_revenue_month" type="object"
+                                class="o_crm_dashboard_tile tile-success">
+                            <div class="tile-label">Revenue This Month</div>
+                            <div class="tile-value">
+                                <field name="revenue_month" widget="monetary"/>
+                            </div>
+                            <div class="tile-sub">
+                                <field name="won_this_month"/> deals won
+                            </div>
+                        </button>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Server Action wrapping dashboard open -->
+    <record id="action_crm_dashboard" model="ir.actions.server">
+        <field name="name">Dashboard</field>
+        <field name="model_id" ref="model_crm_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_dashboard()</field>
+    </record>
+
+    <!-- Menu: top of CRM Custom root -->
+    <menuitem id="menu_crm_dashboard"
+              name="Dashboard"
+              parent="menu_crm_root"
+              action="action_crm_dashboard"
+              sequence="1"/>
+
+</odoo>

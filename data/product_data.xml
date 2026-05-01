@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Product sequence -->
+        <record id="seq_crm_product" model="ir.sequence">
+            <field name="name">CRM Product Sequence</field>
+            <field name="code">crm.product</field>
+            <field name="prefix">PROD/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Categories -->
+        <record id="product_category_biometric" model="crm.product.category">
+            <field name="name">Biometric Locks</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="product_category_keypad" model="crm.product.category">
+            <field name="name">Keypad Locks</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="product_category_bluetooth" model="crm.product.category">
+            <field name="name">Bluetooth/WiFi Locks</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="product_category_access_control" model="crm.product.category">
+            <field name="name">Access Control Systems</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="product_category_accessories" model="crm.product.category">
+            <field name="name">Accessories &amp; Parts</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <!-- Sample products -->
+        <record id="product_smart_door_lock_pro_x1" model="crm.product">
+            <field name="name">Smart Door Lock Pro X1</field>
+            <field name="sku">SDL-PRO-X1</field>
+            <field name="category_id" ref="product_category_biometric"/>
+            <field name="list_price">12500.00</field>
+            <field name="description"><![CDATA[<p>Biometric + Keypad smart door lock for premium homes.</p>]]></field>
+        </record>
+
+        <record id="product_smart_padlock_s200" model="crm.product">
+            <field name="name">Smart Padlock S200</field>
+            <field name="sku">SPL-S200</field>
+            <field name="category_id" ref="product_category_bluetooth"/>
+            <field name="list_price">3500.00</field>
+            <field name="description"><![CDATA[<p>Bluetooth smart padlock, app-controlled.</p>]]></field>
+        </record>
+
+        <record id="product_access_control_panel_acp400" model="crm.product">
+            <field name="name">Access Control Panel ACP-400</field>
+            <field name="sku">ACP-400</field>
+            <field name="category_id" ref="product_category_access_control"/>
+            <field name="list_price">28000.00</field>
+            <field name="description"><![CDATA[<p>Multi-door access control panel for offices and hotels.</p>]]></field>
+        </record>
+
+        <record id="product_smart_lock_lite_l100" model="crm.product">
+            <field name="name">Smart Lock Lite L100</field>
+            <field name="sku">SLL-L100</field>
+            <field name="category_id" ref="product_category_keypad"/>
+            <field name="list_price">6800.00</field>
+            <field name="description"><![CDATA[<p>Keypad-only smart lock, entry-level model.</p>]]></field>
+        </record>
+
+        <record id="product_biometric_gate_lock_bgl700" model="crm.product">
+            <field name="name">Biometric Gate Lock BGL-700</field>
+            <field name="sku">BGL-700</field>
+            <field name="category_id" ref="product_category_biometric"/>
+            <field name="list_price">18500.00</field>
+            <field name="description"><![CDATA[<p>Heavy-duty biometric gate lock for commercial premises.</p>]]></field>
+        </record>
+
+        <record id="product_smart_lock_accessories_kit" model="crm.product">
+            <field name="name">Smart Lock Accessories Kit</field>
+            <field name="sku">SLA-KIT</field>
+            <field name="category_id" ref="product_category_accessories"/>
+            <field name="list_price">1200.00</field>
+            <field name="description"><![CDATA[<p>Batteries, RFID cards, mounting screws.</p>]]></field>
+        </record>
+
+    </data>
+</odoo>

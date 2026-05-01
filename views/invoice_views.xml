@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="view_invoice_list" model="ir.ui.view">
+        <field name="name">crm.invoice.list</field>
+        <field name="model">crm.invoice</field>
+        <field name="arch" type="xml">
+            <list sample="1"
+                  class="o_crm_custom_list"
+                  decoration-info="state == 'draft'"
+                  decoration-success="payment_state == 'paid'"
+                  decoration-warning="payment_state == 'partial'"
+                  decoration-danger="is_overdue"
+                  decoration-muted="state == 'cancelled'">
+                <field name="reference"/>
+                <field name="partner_id"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="invoice_date"/>
+                <field name="due_date"/>
+                <field name="amount_total" widget="monetary" sum="Total"/>
+                <field name="amount_paid" widget="monetary" sum="Paid"/>
+                <field name="amount_residual" widget="monetary" sum="Due"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="payment_state" widget="badge"
+                       decoration-success="payment_state == 'paid'"
+                       decoration-warning="payment_state == 'partial'"
+                       decoration-danger="payment_state == 'unpaid'"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'paid'"
+                       decoration-muted="state == 'cancelled'"/>
+                <field name="is_overdue" optional="show" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_invoice_form" model="ir.ui.view">
+        <field name="name">crm.invoice.form</field>
+        <field name="model">crm.invoice</field>
+        <field name="arch" type="xml">
+            <form class="o_crm_custom_form">
+                <header>
+                    <button name="action_post" type="object"
+                            string="Post Invoice" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_register_payment" type="object"
+                            string="Register Payment" class="btn btn-success"
+                            invisible="state != 'posted' or payment_state == 'paid'"/>
+                    <button name="action_send" type="object"
+                            string="Send Invoice"
+                            invisible="state in ('draft', 'cancelled')"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel" class="btn btn-secondary"
+                            invisible="state in ('paid', 'cancelled')"
+                            confirm="Cancel this invoice?"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state not in ('posted', 'cancelled') or payment_state != 'unpaid'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,posted,paid"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Paid"
+                            bg_color="text-bg-success"
+                            invisible="state != 'paid'"/>
+                    <widget name="web_ribbon" title="Cancelled"
+                            bg_color="text-bg-danger"
+                            invisible="state != 'cancelled'"/>
+                    <widget name="web_ribbon" title="Overdue"
+                            bg_color="text-bg-warning"
+                            invisible="not is_overdue"/>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sale_order" type="object"
+                                class="oe_stat_button" icon="fa-shopping-cart"
+                                invisible="not sale_order_id">
+                            <div class="o_stat_text">Order</div>
+                        </button>
+                        <button name="action_view_payments" type="object"
+                                class="oe_stat_button" icon="fa-money"
+                                invisible="not payment_ids">
+                            <field name="amount_paid" widget="statinfo" string="Paid"/>
+                        </button>
+                    </div>
+
+                    <field name="is_overdue" invisible="1"/>
+
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">
+                            <field name="reference" readonly="1"/>
+                        </span>
+                        <h1>
+                            <field name="name" placeholder="e.g. Invoice for ABC Hotel — Smart Locks"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Customer">
+                            <field name="partner_id"/>
+                            <field name="contact_name"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
+                        </group>
+                        <group string="Invoice Info">
+                            <field name="sale_order_id"
+                                   readonly="state != 'draft'"
+                                   options="{'no_create': True}"
+                                   domain="[('state', 'in', ('confirmed','in_progress','delivered','done'))]"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="invoice_date"/>
+                            <field name="due_date"/>
+                            <field name="posted_date" invisible="not posted_date"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Payment Terms">
+                            <field name="payment_terms"/>
+                            <field name="payment_terms_custom"
+                                   invisible="payment_terms != 'custom'"
+                                   required="payment_terms == 'custom'"/>
+                        </group>
+                        <group string="Totals">
+                            <field name="amount_total" widget="monetary"/>
+                            <field name="amount_paid" widget="monetary"/>
+                            <field name="amount_residual" widget="monetary"
+                                   class="text-danger fw-bold"/>
+                            <field name="payment_state" widget="badge"
+                                   decoration-success="payment_state == 'paid'"
+                                   decoration-warning="payment_state == 'partial'"
+                                   decoration-danger="payment_state == 'unpaid'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Lines" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price" widget="monetary"/>
+                                    <field name="discount"/>
+                                    <field name="subtotal" widget="monetary"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="amount_total" widget="monetary"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                        </page>
+                        <page string="Payments" name="payments">
+                            <field name="payment_ids" readonly="state != 'posted'">
+                                <list editable="bottom" decoration-success="amount > 0">
+                                    <field name="payment_date"/>
+                                    <field name="amount" widget="monetary"/>
+                                    <field name="method"/>
+                                    <field name="reference"/>
+                                    <field name="note"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Terms &amp; Conditions" name="terms">
+                            <field name="terms_conditions" placeholder="Payment, late fees, jurisdiction..."/>
+                        </page>
+                        <page string="Internal Note" name="note">
+                            <field name="internal_note" placeholder="Internal-only notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban -->
+    <record id="view_invoice_kanban" model="ir.ui.view">
+        <field name="name">crm.invoice.kanban</field>
+        <field name="model">crm.invoice</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="state"/>
+                <field name="payment_state"/>
+                <field name="is_overdue"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="o_kanban_record_top">
+                                <strong><field name="reference"/></strong>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <div t-if="record.partner_id.raw_value">
+                                    <i class="fa fa-user" title="Customer" role="img" aria-label="Customer"/> <field name="partner_id"/>
+                                </div>
+                                <div><i class="fa fa-money" title="Total" role="img" aria-label="Total"/> <field name="amount_total" widget="monetary"/></div>
+                                <div t-if="record.amount_residual.raw_value &gt; 0" class="text-danger">
+                                    <i class="fa fa-exclamation-circle" title="Due" role="img" aria-label="Due"/> Due: <field name="amount_residual" widget="monetary"/>
+                                </div>
+                                <div t-if="record.due_date.raw_value">
+                                    <i class="fa fa-calendar" title="Due Date" role="img" aria-label="Due Date"/> <field name="due_date"/>
+                                </div>
+                                <div t-if="record.is_overdue.raw_value" class="badge text-bg-danger mt-1">OVERDUE</div>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                                <field name="payment_state" widget="badge"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Pivot/Graph -->
+    <record id="view_invoice_pivot" model="ir.ui.view">
+        <field name="name">crm.invoice.pivot</field>
+        <field name="model">crm.invoice</field>
+        <field name="arch" type="xml">
+            <pivot string="Invoice Analysis" sample="1">
+                <field name="payment_state" type="row"/>
+                <field name="invoice_date" interval="month" type="col"/>
+                <field name="amount_total" type="measure"/>
+                <field name="amount_residual" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_invoice_graph" model="ir.ui.view">
+        <field name="name">crm.invoice.graph</field>
+        <field name="model">crm.invoice</field>
+        <field name="arch" type="xml">
+            <graph string="Invoice Analysis" type="bar" sample="1">
+                <field name="payment_state"/>
+                <field name="amount_total" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Search -->
+    <record id="view_invoice_search" model="ir.ui.view">
+        <field name="name">crm.invoice.search</field>
+        <field name="model">crm.invoice</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <field name="sale_order_id"/>
+                <filter string="My Invoices" name="my_invoices"
+                        domain="['|', ('user_id', '=', uid), ('create_uid', '=', uid)]"/>
+                <separator/>
+                <filter string="Open" name="open"
+                        domain="[('state', '=', 'posted'), ('payment_state', '!=', 'paid')]"/>
+                <filter string="Overdue" name="overdue"
+                        domain="[('is_overdue', '=', True)]"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Posted" name="posted" domain="[('state', '=', 'posted')]"/>
+                <filter string="Paid" name="paid" domain="[('state', '=', 'paid')]"/>
+                <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter string="Unpaid" name="unpaid" domain="[('payment_state', '=', 'unpaid')]"/>
+                <filter string="Partially Paid" name="partial" domain="[('payment_state', '=', 'partial')]"/>
+                <group>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Payment Status" name="group_payment"
+                            context="{'group_by': 'payment_state'}"/>
+                    <filter string="Salesperson" name="group_user"
+                            context="{'group_by': 'user_id'}"/>
+                    <filter string="Customer" name="group_partner"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter string="Invoice Date" name="group_date"
+                            context="{'group_by': 'invoice_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_invoice" model="ir.actions.act_window">
+        <field name="name">Invoices</field>
+        <field name="res_model">crm.invoice</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
+        <field name="search_view_id" ref="view_invoice_search"/>
+        <field name="context">{'search_default_my_invoices': 1, 'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No invoices yet</p>
+            <p>Invoices are created from confirmed sales orders. Click "Create Invoice" on a sales order to bill the customer.</p>
+        </field>
+    </record>
+
+    <!-- Overdue invoices action (used by dashboard / direct shortcut) -->
+    <record id="action_invoice_overdue" model="ir.actions.act_window">
+        <field name="name">Overdue Invoices</field>
+        <field name="res_model">crm.invoice</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_invoice_search"/>
+        <field name="domain">[('is_overdue', '=', True)]</field>
+        <field name="context">{'search_default_my_invoices': 1}</field>
+    </record>
+
+    <!-- Payment views -->
+    <record id="view_invoice_payment_list" model="ir.ui.view">
+        <field name="name">crm.invoice.payment.list</field>
+        <field name="model">crm.invoice.payment</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="invoice_id"/>
+                <field name="partner_id"/>
+                <field name="payment_date"/>
+                <field name="amount" widget="monetary" sum="Total"/>
+                <field name="method"/>
+                <field name="reference"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_invoice_payment_form" model="ir.ui.view">
+        <field name="name">crm.invoice.payment.form</field>
+        <field name="model">crm.invoice.payment</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="invoice_id"/>
+                        <field name="payment_date"/>
+                        <field name="amount" widget="monetary"/>
+                        <field name="method"/>
+                        <field name="reference"/>
+                        <field name="note"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Payment wizard -->
+    <record id="view_invoice_payment_wizard_form" model="ir.ui.view">
+        <field name="name">crm.invoice.payment.wizard.form</field>
+        <field name="model">crm.invoice.payment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Register Payment">
+                <sheet>
+                    <group>
+                        <field name="invoice_id" readonly="1"/>
+                        <field name="amount_residual" widget="monetary"/>
+                        <field name="payment_date"/>
+                        <field name="amount" widget="monetary"/>
+                        <field name="method"/>
+                        <field name="reference" placeholder="UTR / Cheque no. / Txn id"/>
+                        <field name="note"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_register" type="object"
+                            string="Register Payment" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_invoice_main"
+              name="Invoices"
+              parent="menu_crm_root"
+              sequence="25"/>
+
+    <menuitem id="menu_invoice_all"
+              name="All Invoices"
+              parent="menu_invoice_main"
+              action="action_invoice"
+              sequence="10"/>
+
+    <menuitem id="menu_invoice_overdue"
+              name="Overdue"
+              parent="menu_invoice_main"
+              action="action_invoice_overdue"
+              sequence="20"/>
+
+</odoo>

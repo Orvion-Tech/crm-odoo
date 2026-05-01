@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Module Category (top-level grouping shown in Users & Companies) -->
+        <record id="module_category_crm_custom" model="ir.module.category">
+            <field name="name">CRM Custom</field>
+            <field name="description">Permissions for the Custom CRM module</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <!-- Privilege: the "selector" shown on the user form under the category -->
+        <record id="res_groups_privilege_crm_custom" model="res.groups.privilege">
+            <field name="name">CRM Access</field>
+            <field name="category_id" ref="module_category_crm_custom"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <!-- Groups -->
+        <record id="group_crm_salesperson" model="res.groups">
+            <field name="name">Salesperson</field>
+            <field name="privilege_id" ref="res_groups_privilege_crm_custom"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="group_crm_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="privilege_id" ref="res_groups_privilege_crm_custom"/>
+            <field name="implied_ids" eval="[(4, ref('group_crm_salesperson'))]"/>
+            <field name="user_ids" eval="[(4, ref('base.user_admin'))]"/>
+        </record>
+
+        <!-- Record Rules -->
+        <record id="rule_inquiry_salesperson" model="ir.rule">
+            <field name="name">Inquiry: salesperson sees own or assigned</field>
+            <field name="model_id" ref="model_crm_inquiry"/>
+            <field name="domain_force">['|', ('user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_salesperson'))]"/>
+        </record>
+
+        <record id="rule_inquiry_manager" model="ir.rule">
+            <field name="name">Inquiry: manager sees all</field>
+            <field name="model_id" ref="model_crm_inquiry"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_manager'))]"/>
+        </record>
+
+        <record id="rule_lead_salesperson" model="ir.rule">
+            <field name="name">Lead: salesperson sees own or assigned</field>
+            <field name="model_id" ref="model_crm_lead"/>
+            <field name="domain_force">['|', ('user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_salesperson'))]"/>
+        </record>
+
+        <record id="rule_lead_manager" model="ir.rule">
+            <field name="name">Lead: manager sees all</field>
+            <field name="model_id" ref="model_crm_lead"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_manager'))]"/>
+        </record>
+
+        <record id="rule_quotation_salesperson" model="ir.rule">
+            <field name="name">Quotation: salesperson sees own or assigned</field>
+            <field name="model_id" ref="model_crm_quotation"/>
+            <field name="domain_force">['|', ('user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_salesperson'))]"/>
+        </record>
+
+        <record id="rule_quotation_manager" model="ir.rule">
+            <field name="name">Quotation: manager sees all</field>
+            <field name="model_id" ref="model_crm_quotation"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_manager'))]"/>
+        </record>
+
+        <record id="rule_sale_order_salesperson" model="ir.rule">
+            <field name="name">Sales Order: salesperson sees own or assigned</field>
+            <field name="model_id" ref="model_crm_sale_order"/>
+            <field name="domain_force">['|', ('user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_salesperson'))]"/>
+        </record>
+
+        <record id="rule_sale_order_manager" model="ir.rule">
+            <field name="name">Sales Order: manager sees all</field>
+            <field name="model_id" ref="model_crm_sale_order"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_manager'))]"/>
+        </record>
+
+        <record id="rule_invoice_salesperson" model="ir.rule">
+            <field name="name">Invoice: salesperson sees own or assigned</field>
+            <field name="model_id" ref="model_crm_invoice"/>
+            <field name="domain_force">['|', ('user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_salesperson'))]"/>
+        </record>
+
+        <record id="rule_invoice_manager" model="ir.rule">
+            <field name="name">Invoice: manager sees all</field>
+            <field name="model_id" ref="model_crm_invoice"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_manager'))]"/>
+        </record>
+
+        <record id="rule_invoice_payment_salesperson" model="ir.rule">
+            <field name="name">Invoice Payment: salesperson sees own invoice payments</field>
+            <field name="model_id" ref="model_crm_invoice_payment"/>
+            <field name="domain_force">['|', ('invoice_id.user_id', '=', user.id), ('invoice_id.create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_salesperson'))]"/>
+        </record>
+
+        <record id="rule_invoice_payment_manager" model="ir.rule">
+            <field name="name">Invoice Payment: manager sees all</field>
+            <field name="model_id" ref="model_crm_invoice_payment"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_crm_manager'))]"/>
+        </record>
+
+    </data>
+</odoo>

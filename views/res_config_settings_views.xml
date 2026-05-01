@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_crm_custom" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.crm_custom</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="CRM Custom" string="CRM Custom" name="crm_custom"
+                     groups="crm_custom.group_crm_manager">
+                    <block title="WhatsApp Integration"
+                           name="crm_custom_whatsapp_settings"
+                           help="Credentials for Meta WhatsApp Cloud API webhook.">
+                        <setting id="wa_phone_number_id_setting"
+                                 string="Phone Number ID"
+                                 help="Meta WhatsApp Business phone_number_id">
+                            <field name="wa_phone_number_id"/>
+                        </setting>
+                        <setting id="wa_access_token_setting"
+                                 string="Access Token"
+                                 help="Meta access token used to send outbound messages">
+                            <field name="wa_access_token" password="True"/>
+                        </setting>
+                        <setting id="wa_verify_token_setting"
+                                 string="Verify Token"
+                                 help="Arbitrary token that matches the one configured on the Meta webhook">
+                            <field name="wa_verify_token"/>
+                        </setting>
+                        <setting id="wa_app_secret_setting"
+                                 string="App Secret"
+                                 help="Meta app secret; used to validate X-Hub-Signature-256">
+                            <field name="wa_app_secret" password="True"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_crm_custom_config_settings" model="ir.actions.act_window">
+        <field name="name">CRM Custom Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'crm_custom'}</field>
+    </record>
+
+    <menuitem id="menu_crm_custom_settings"
+              name="Settings"
+              parent="menu_crm_root"
+              action="action_crm_custom_config_settings"
+              sequence="99"
+              groups="crm_custom.group_crm_manager"/>
+
+</odoo>

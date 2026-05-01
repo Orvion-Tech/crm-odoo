@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="view_inquiry_list" model="ir.ui.view">
+        <field name="name">crm.inquiry.list</field>
+        <field name="model">crm.inquiry</field>
+        <field name="arch" type="xml">
+            <list sample="1"
+                  class="o_crm_custom_list"
+                  decoration-bf="priority == '2'"
+                  decoration-info="state == 'new'"
+                  decoration-warning="state == 'in_progress'"
+                  decoration-success="state == 'done'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="priority" widget="priority" nolabel="1"/>
+                <field name="reference" optional="hide"/>
+                <field name="name" string="Customer"/>
+                <field name="phone" widget="phone" optional="show"/>
+                <field name="email" widget="email" optional="hide"/>
+                <field name="source" optional="show"/>
+                <field name="customer_type" optional="show"/>
+                <field name="city" optional="hide"/>
+                <field name="expected_revenue" widget="monetary" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="quantity_estimate" optional="hide"/>
+                <field name="date" optional="show"/>
+                <field name="expected_closing_date" optional="hide"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'new'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_inquiry_form" model="ir.ui.view">
+        <field name="name">crm.inquiry.form</field>
+        <field name="model">crm.inquiry</field>
+        <field name="arch" type="xml">
+            <form class="o_crm_custom_form">
+                <header>
+                    <button name="action_in_progress" type="object"
+                            string="Start" class="oe_highlight"
+                            invisible="state != 'new'"/>
+                    <button name="action_done" type="object"
+                            string="Mark Done" class="btn btn-success"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_convert_to_lead" type="object"
+                            string="Convert to Lead" class="oe_highlight"
+                            invisible="state == 'cancelled'"/>
+                    <button name="action_reset" type="object"
+                            string="Reset to New"
+                            invisible="state == 'new'"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel" class="btn btn-secondary"
+                            invisible="state in ('done', 'cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="new,in_progress,done"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Done"
+                            bg_color="text-bg-success"
+                            invisible="state != 'done'"/>
+                    <widget name="web_ribbon" title="Cancelled"
+                            bg_color="text-bg-danger"
+                            invisible="state != 'cancelled'"/>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_leads" type="object"
+                                class="oe_stat_button" icon="fa-star"
+                                invisible="lead_count == 0">
+                            <field name="lead_count" widget="statinfo" string="Leads"/>
+                        </button>
+                        <button name="action_view_duplicates" type="object"
+                                class="oe_stat_button" icon="fa-clone"
+                                invisible="duplicate_count == 0">
+                            <field name="duplicate_count" widget="statinfo" string="Duplicates"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">
+                            <field name="reference" readonly="1"/>
+                        </span>
+                        <h1>
+                            <field name="name" placeholder="e.g. Ramesh Kumar — ABC Hotel"/>
+                        </h1>
+                        <div class="d-flex align-items-center gap-3 mt-2">
+                            <field name="priority" widget="priority" nolabel="1"/>
+                            <field name="customer_type" widget="badge"
+                                   class="text-bg-info"
+                                   invisible="not customer_type"/>
+                            <field name="source" widget="badge"
+                                   class="text-bg-secondary"
+                                   invisible="not source"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Contact">
+                            <field name="partner_id"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
+                            <label for="city"/>
+                            <div class="o_row">
+                                <field name="city" placeholder="City"/>
+                                <field name="country_id" placeholder="Country" options="{'no_create': True}"/>
+                            </div>
+                        </group>
+                        <group string="Inquiry Info">
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="date"/>
+                            <field name="expected_closing_date"/>
+                        </group>
+                    </group>
+
+                    <group string="Opportunity">
+                        <group>
+                            <field name="expected_revenue" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="quantity_estimate"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Describe the inquiry..."/>
+                        </page>
+                        <page string="WhatsApp" name="whatsapp"
+                              invisible="source != 'whatsapp'">
+                            <group>
+                                <field name="whatsapp_message_id" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_inquiry_kanban" model="ir.ui.view">
+        <field name="name">crm.inquiry.kanban</field>
+        <field name="model">crm.inquiry</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="state"/>
+                <field name="priority"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="o_kanban_record_top">
+                                <strong><field name="name"/></strong>
+                                <field name="priority" widget="priority"/>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <field name="reference"/>
+                                <div t-if="record.phone.raw_value">
+                                    <i class="fa fa-phone" title="Phone" role="img" aria-label="Phone"/> <field name="phone"/>
+                                </div>
+                                <div t-if="record.email.raw_value">
+                                    <i class="fa fa-envelope" title="Email" role="img" aria-label="Email"/> <field name="email"/>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                                <field name="date"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Pivot View -->
+    <record id="view_inquiry_pivot" model="ir.ui.view">
+        <field name="name">crm.inquiry.pivot</field>
+        <field name="model">crm.inquiry</field>
+        <field name="arch" type="xml">
+            <pivot string="Inquiry Analysis" sample="1">
+                <field name="source" type="row"/>
+                <field name="date" interval="month" type="col"/>
+                <field name="expected_revenue" type="measure"/>
+                <field name="quantity_estimate" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Graph View -->
+    <record id="view_inquiry_graph" model="ir.ui.view">
+        <field name="name">crm.inquiry.graph</field>
+        <field name="model">crm.inquiry</field>
+        <field name="arch" type="xml">
+            <graph string="Inquiry Analysis" type="bar" sample="1">
+                <field name="source"/>
+                <field name="expected_revenue" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_inquiry_search" model="ir.ui.view">
+        <field name="name">crm.inquiry.search</field>
+        <field name="model">crm.inquiry</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <field name="user_id"/>
+                <field name="city"/>
+                <filter string="My Inquiries" name="my_inquiries"
+                        domain="['|', ('user_id', '=', uid), ('create_uid', '=', uid)]"/>
+                <separator/>
+                <filter string="New" name="new"
+                        domain="[('state', '=', 'new')]"/>
+                <filter string="In Progress" name="in_progress"
+                        domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Done" name="done"
+                        domain="[('state', '=', 'done')]"/>
+                <filter string="Cancelled" name="cancelled"
+                        domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter string="WhatsApp" name="wa_source"
+                        domain="[('source', '=', 'whatsapp')]"/>
+                <group>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Salesperson" name="group_user"
+                            context="{'group_by': 'user_id'}"/>
+                    <filter string="Source" name="group_source"
+                            context="{'group_by': 'source'}"/>
+                    <filter string="Customer Type" name="group_customer_type"
+                            context="{'group_by': 'customer_type'}"/>
+                    <filter string="Priority" name="group_priority"
+                            context="{'group_by': 'priority'}"/>
+                    <filter string="Inquiry Date" name="group_date"
+                            context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_inquiry" model="ir.actions.act_window">
+        <field name="name">Inquiries</field>
+        <field name="res_model">crm.inquiry</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
+        <field name="search_view_id" ref="view_inquiry_search"/>
+        <field name="context">{'search_default_my_inquiries': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first inquiry
+            </p>
+            <p>Track customer inquiries from capture to resolution.</p>
+        </field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_crm_root"
+              name="CRM Custom"
+              sequence="10"
+              groups="crm_custom.group_crm_salesperson"
+              web_icon="crm_custom,static/description/icon.png"/>
+
+    <menuitem id="menu_inquiry_main"
+              name="Inquiries"
+              parent="menu_crm_root"
+              sequence="10"/>
+
+    <menuitem id="menu_inquiry"
+              name="All Inquiries"
+              parent="menu_inquiry_main"
+              action="action_inquiry"
+              sequence="10"/>
+
+</odoo>

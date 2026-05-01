@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Customer 360: stat-buttons on the partner form -->
+    <record id="view_partner_form_crm_360" model="ir.ui.view">
+        <field name="name">res.partner.form.crm.360</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_crm_inquiries" type="object"
+                        class="oe_stat_button" icon="fa-question-circle"
+                        invisible="crm_inquiry_count == 0">
+                    <field name="crm_inquiry_count" widget="statinfo" string="Inquiries"/>
+                </button>
+                <button name="action_view_crm_leads" type="object"
+                        class="oe_stat_button" icon="fa-star"
+                        invisible="crm_lead_count == 0">
+                    <field name="crm_lead_count" widget="statinfo" string="Leads"/>
+                </button>
+                <button name="action_view_crm_quotations" type="object"
+                        class="oe_stat_button" icon="fa-file-text-o"
+                        invisible="crm_quotation_count == 0">
+                    <field name="crm_quotation_count" widget="statinfo" string="Quotations"/>
+                </button>
+                <button name="action_view_crm_sale_orders" type="object"
+                        class="oe_stat_button" icon="fa-shopping-cart"
+                        invisible="crm_sale_order_count == 0">
+                    <field name="crm_sale_order_count" widget="statinfo" string="Orders"/>
+                </button>
+                <button name="action_view_crm_invoices" type="object"
+                        class="oe_stat_button" icon="fa-money"
+                        invisible="crm_invoice_count == 0">
+                    <field name="crm_invoice_count" widget="statinfo" string="Invoices"/>
+                </button>
+                <button name="action_view_crm_outstanding" type="object"
+                        class="oe_stat_button" icon="fa-exclamation-circle"
+                        invisible="crm_outstanding_amount == 0">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value text-danger">
+                            <field name="crm_outstanding_amount" widget="monetary"/>
+                        </span>
+                        <span class="o_stat_text">Outstanding</span>
+                    </div>
+                </button>
+                <button name="action_view_crm_invoices" type="object"
+                        class="oe_stat_button" icon="fa-line-chart"
+                        invisible="crm_total_revenue == 0">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value text-success">
+                            <field name="crm_total_revenue" widget="monetary"/>
+                        </span>
+                        <span class="o_stat_text">Lifetime</span>
+                    </div>
+                </button>
+                <field name="crm_currency_id" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Action: customers list (res.partner scoped to actual customers) -->
+    <record id="action_crm_customer" model="ir.actions.act_window">
+        <field name="name">Customers</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('is_company', '=', True)]</field>
+        <field name="context">{'default_is_company': True, 'default_customer_rank': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first customer</p>
+            <p>Customers are companies or individuals you do business with. Inquiries, leads, quotations and orders all link to a customer record here.</p>
+        </field>
+    </record>
+
+    <!-- Sub-action: contacts (individuals — for cases where the customer is a person) -->
+    <record id="action_crm_contact" model="ir.actions.act_window">
+        <field name="name">Contacts</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">All contacts (companies + individuals)</p>
+            <p>Includes companies, individual contacts, and child contacts attached to companies.</p>
+        </field>
+    </record>
+
+    <!-- Menus under CRM Custom -->
+    <menuitem id="menu_customer_main"
+              name="Customers"
+              parent="menu_crm_root"
+              sequence="5"/>
+
+    <menuitem id="menu_customer"
+              name="All Customers"
+              parent="menu_customer_main"
+              action="action_crm_customer"
+              sequence="10"/>
+
+    <menuitem id="menu_contact"
+              name="All Contacts"
+              parent="menu_customer_main"
+              action="action_crm_contact"
+              sequence="20"/>
+
+</odoo>

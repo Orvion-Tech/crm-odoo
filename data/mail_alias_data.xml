@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Default mail alias: emails to <inquiries@<catchall-domain>>
+             create a new crm.inquiry record.
+
+             - alias_name is the local part ("inquiries").
+             - The domain comes from the global catchall alias_domain setting
+               (Settings → Technical → Email → Alias Domains) OR from the
+               "mail.catchall.domain" system parameter on older installs.
+             - alias_contact='everyone' allows unauthenticated senders.
+             - alias_defaults can seed default values on the created record
+               (JSON-ish Python dict evaluated server-side). -->
+        <record id="mail_alias_inquiry" model="mail.alias">
+            <field name="alias_name">inquiries</field>
+            <field name="alias_model_id" ref="model_crm_inquiry"/>
+            <field name="alias_contact">everyone</field>
+            <field name="alias_defaults">{'source': 'email', 'state': 'new'}</field>
+        </record>
+
+    </data>
+</odoo>

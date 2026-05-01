@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_quotation_send_wizard_form" model="ir.ui.view">
+        <field name="name">crm.quotation.send.wizard.form</field>
+        <field name="model">crm.quotation.send.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Send Quotation">
+                <group>
+                    <field name="quotation_id" readonly="1"/>
+                    <field name="channel" widget="radio"/>
+                </group>
+                <group>
+                    <field name="email_to"
+                           required="channel in ('email', 'both')"
+                           invisible="channel == 'whatsapp'"/>
+                    <field name="phone"
+                           required="channel in ('whatsapp', 'both')"
+                           invisible="channel == 'email'"/>
+                </group>
+                <group string="Message">
+                    <field name="message_body" nolabel="1"/>
+                </group>
+                <div class="alert alert-info" role="alert"
+                     invisible="channel == 'email'">
+                    <strong>WhatsApp note:</strong> Meta only accepts free-form text
+                    within 24 hours of the customer's last message. Outside that
+                    window, an approved message template is required.
+                </div>
+                <footer>
+                    <button name="action_confirm" type="object"
+                            string="Send" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

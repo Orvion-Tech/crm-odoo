@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Stage list/form -->
+    <record id="view_lead_stage_list" model="ir.ui.view">
+        <field name="name">crm.lead.stage.list</field>
+        <field name="model">crm.lead.stage</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="fold"/>
+                <field name="is_won"/>
+                <field name="is_lost"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_lead_stage" model="ir.actions.act_window">
+        <field name="name">Lead Stages</field>
+        <field name="res_model">crm.lead.stage</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- Lead list -->
+    <record id="view_lead_list" model="ir.ui.view">
+        <field name="name">crm.lead.list</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <list sample="1"
+                  class="o_crm_custom_list"
+                  decoration-bf="priority == '2'"
+                  decoration-success="is_won"
+                  decoration-muted="is_lost">
+                <field name="priority" widget="priority" nolabel="1"/>
+                <field name="reference" optional="hide"/>
+                <field name="name" string="Lead"/>
+                <field name="contact_name" string="Contact" optional="show"/>
+                <field name="phone" widget="phone" optional="hide"/>
+                <field name="email" widget="email" optional="hide"/>
+                <field name="customer_type" optional="show"/>
+                <field name="source" optional="hide"/>
+                <field name="city" optional="hide"/>
+                <field name="expected_revenue" widget="monetary" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="score" widget="progressbar"
+                       options="{'max_value': 100, 'editable': false}"/>
+                <field name="date" optional="hide"/>
+                <field name="expected_closing_date" optional="hide"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="stage_id" widget="badge"
+                       decoration-success="is_won"
+                       decoration-muted="is_lost"/>
+                <field name="is_won" column_invisible="1"/>
+                <field name="is_lost" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Lead form -->
+    <record id="view_lead_form" model="ir.ui.view">
+        <field name="name">crm.lead.form</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <form class="o_crm_custom_form">
+                <header>
+                    <button name="action_create_quotation" type="object"
+                            string="Create Quotation" class="oe_highlight"
+                            invisible="is_lost"/>
+                    <button name="action_mark_won" type="object"
+                            string="Mark Won" class="btn btn-success"
+                            invisible="is_won or is_lost"/>
+                    <button name="action_mark_lost" type="object"
+                            string="Mark Lost" class="btn btn-secondary"
+                            invisible="is_won or is_lost"/>
+                    <field name="stage_id" widget="statusbar"
+                           options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Won"
+                            bg_color="text-bg-success"
+                            invisible="not is_won"/>
+                    <widget name="web_ribbon" title="Lost"
+                            bg_color="text-bg-danger"
+                            invisible="not is_lost"/>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_quotations" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="quotation_count == 0">
+                            <field name="quotation_count" widget="statinfo" string="Quotations"/>
+                        </button>
+                        <button name="action_view_sale_orders" type="object"
+                                class="oe_stat_button" icon="fa-shopping-cart"
+                                invisible="sale_order_count == 0">
+                            <field name="sale_order_count" widget="statinfo" string="Sales Orders"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">
+                            <field name="reference" readonly="1"/>
+                        </span>
+                        <h1>
+                            <field name="name" placeholder="e.g. 50 Smart Locks for ABC Hotel"/>
+                        </h1>
+                        <div class="d-flex align-items-center gap-3 mt-2">
+                            <field name="priority" widget="priority" nolabel="1"/>
+                            <field name="customer_type" widget="badge"
+                                   class="text-bg-info"
+                                   invisible="not customer_type"/>
+                            <field name="source" widget="badge"
+                                   class="text-bg-secondary"
+                                   invisible="not source"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Customer">
+                            <field name="partner_id"/>
+                            <field name="contact_name"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
+                            <label for="city"/>
+                            <div class="o_row">
+                                <field name="city" placeholder="City"/>
+                                <field name="country_id" placeholder="Country" options="{'no_create': True}"/>
+                            </div>
+                        </group>
+                        <group string="Sales Info">
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="team_id"/>
+                            <field name="date"/>
+                            <field name="expected_closing_date"/>
+                            <field name="inquiry_id"
+                                   readonly="is_won or is_lost"
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <group string="Forecast">
+                        <group>
+                            <field name="expected_revenue" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="score" widget="progressbar"
+                                   options="{'max_value': 100, 'editable': false}"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Products" name="products">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price" widget="monetary"/>
+                                    <field name="subtotal" widget="monetary"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="expected_revenue" widget="monetary"/>
+                            </group>
+                        </page>
+                        <page string="Internal Notes" name="notes">
+                            <field name="description" placeholder="Internal notes about this lead..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Lead kanban -->
+    <record id="view_lead_kanban" model="ir.ui.view">
+        <field name="name">crm.lead.kanban</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" class="o_kanban_small_column">
+                <field name="stage_id"/>
+                <field name="priority"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="o_kanban_record_top">
+                                <strong><field name="name"/></strong>
+                                <field name="priority" widget="priority"/>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <field name="reference"/>
+                                <div t-if="record.contact_name.raw_value">
+                                    <i class="fa fa-user" title="Contact" role="img" aria-label="Contact"/> <field name="contact_name"/>
+                                </div>
+                                <div t-if="record.expected_revenue.raw_value">
+                                    <i class="fa fa-money" title="Revenue" role="img" aria-label="Revenue"/> <field name="expected_revenue" widget="monetary"/>
+                                </div>
+                                <div t-if="record.score.raw_value">
+                                    <i class="fa fa-star" title="Score" role="img" aria-label="Score"/> Score: <field name="score"/>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                                <field name="date"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Lead pivot/graph -->
+    <record id="view_lead_pivot" model="ir.ui.view">
+        <field name="name">crm.lead.pivot</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <pivot string="Lead Analysis" sample="1">
+                <field name="stage_id" type="row"/>
+                <field name="date" interval="month" type="col"/>
+                <field name="expected_revenue" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_lead_graph" model="ir.ui.view">
+        <field name="name">crm.lead.graph</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <graph string="Lead Analysis" type="bar" sample="1">
+                <field name="stage_id"/>
+                <field name="expected_revenue" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Lead search -->
+    <record id="view_lead_search" model="ir.ui.view">
+        <field name="name">crm.lead.search</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="contact_name"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <field name="user_id"/>
+                <field name="stage_id"/>
+                <filter string="My Leads" name="my_leads"
+                        domain="['|', ('user_id', '=', uid), ('create_uid', '=', uid)]"/>
+                <separator/>
+                <filter string="Open" name="open"
+                        domain="[('is_won', '=', False), ('is_lost', '=', False)]"/>
+                <filter string="Won" name="won" domain="[('is_won', '=', True)]"/>
+                <filter string="Lost" name="lost" domain="[('is_lost', '=', True)]"/>
+                <group>
+                    <filter string="Stage" name="group_stage"
+                            context="{'group_by': 'stage_id'}"/>
+                    <filter string="Salesperson" name="group_user"
+                            context="{'group_by': 'user_id'}"/>
+                    <filter string="Source" name="group_source"
+                            context="{'group_by': 'source'}"/>
+                    <filter string="Customer Type" name="group_customer_type"
+                            context="{'group_by': 'customer_type'}"/>
+                    <filter string="Lead Date" name="group_date"
+                            context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_lead" model="ir.actions.act_window">
+        <field name="name">Leads</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
+        <field name="search_view_id" ref="view_lead_search"/>
+        <field name="context">{'search_default_my_leads': 1, 'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first lead</p>
+            <p>Move leads through your pipeline from New to Won.</p>
+        </field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_lead_main"
+              name="Leads"
+              parent="menu_crm_root"
+              sequence="15"/>
+
+    <menuitem id="menu_lead"
+              name="All Leads"
+              parent="menu_lead_main"
+              action="action_lead"
+              sequence="10"/>
+
+    <menuitem id="menu_lead_stage"
+              name="Stages"
+              parent="menu_lead_main"
+              action="action_lead_stage"
+              sequence="20"
+              groups="crm_custom.group_crm_manager"/>
+
+</odoo>
