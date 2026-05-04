@@ -90,12 +90,11 @@
                         domain="[('quantity', '>', 0)]"/>
                 <filter string="Out of Stock" name="filter_out"
                         domain="[('quantity', '&lt;=', 0)]"/>
-                <group string="Group By">
-                    <filter string="Warehouse" name="group_warehouse"
-                            context="{'group_by': 'warehouse_id'}"/>
-                    <filter string="Product" name="group_product"
-                            context="{'group_by': 'product_id'}"/>
-                </group>
+                <separator/>
+                <filter string="Warehouse" name="group_warehouse"
+                        context="{'group_by': 'warehouse_id'}"/>
+                <filter string="Product" name="group_product"
+                        context="{'group_by': 'product_id'}"/>
             </search>
         </field>
     </record>
@@ -210,12 +209,11 @@
                 <separator/>
                 <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
                 <filter string="Done" name="filter_done" domain="[('state', '=', 'done')]"/>
-                <group string="Group By">
-                    <filter string="Type" name="group_type" context="{'group_by': 'move_type'}"/>
-                    <filter string="Warehouse" name="group_wh" context="{'group_by': 'warehouse_id'}"/>
-                    <filter string="Product" name="group_product" context="{'group_by': 'product_id'}"/>
-                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
-                </group>
+                <separator/>
+                <filter string="Type" name="group_type" context="{'group_by': 'move_type'}"/>
+                <filter string="Warehouse" name="group_wh" context="{'group_by': 'warehouse_id'}"/>
+                <filter string="Product" name="group_product" context="{'group_by': 'product_id'}"/>
+                <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
             </search>
         </field>
     </record>

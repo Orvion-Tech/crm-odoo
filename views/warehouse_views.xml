@@ -94,12 +94,11 @@
                         domain="[('is_default', '=', True)]"/>
                 <filter string="Archived" name="filter_archived"
                         domain="[('active', '=', False)]"/>
-                <group string="Group By">
-                    <filter string="Country" name="group_country"
-                            context="{'group_by': 'country_id'}"/>
-                    <filter string="Manager" name="group_manager"
-                            context="{'group_by': 'manager_id'}"/>
-                </group>
+                <separator/>
+                <filter string="Country" name="group_country"
+                        context="{'group_by': 'country_id'}"/>
+                <filter string="Manager" name="group_manager"
+                        context="{'group_by': 'manager_id'}"/>
             </search>
         </field>
     </record>
