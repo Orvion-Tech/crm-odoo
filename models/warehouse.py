@@ -1,5 +1,6 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import sql
 
 
 class CrmWarehouse(models.Model):
@@ -58,6 +59,11 @@ class CrmWarehouse(models.Model):
 
     @api.model
     def default_warehouse(self):
+        # During the install/upgrade pass, sale_order's warehouse_id column may be
+        # backfilled before crm_warehouse._auto_init() has created our table.
+        # Skip the lookup in that window — the default kicks in normally afterwards.
+        if not sql.table_exists(self.env.cr, self._table):
+            return self.browse()
         wh = self.search([('is_default', '=', True), ('active', '=', True)], limit=1)
         if not wh:
             wh = self.search([('active', '=', True)], limit=1)

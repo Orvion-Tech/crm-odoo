@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <function model="ir.ui.menu" name="_crm_custom_hide_other_apps"/>
+    </data>
+</odoo>

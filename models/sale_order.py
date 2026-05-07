@@ -94,7 +94,7 @@ class SaleOrder(models.Model):
         'crm.invoice', 'sale_order_id', string='Invoices',
     )
     invoice_count = fields.Integer(
-        string='Invoices', compute='_compute_invoice_count',
+        string='Invoice Count', compute='_compute_invoice_count',
     )
 
     @api.depends('invoice_ids')

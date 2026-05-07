@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Form View: tile dashboard -->
     <record id="view_crm_dashboard_form" model="ir.ui.view">
         <field name="name">crm.dashboard.form</field>
         <field name="model">crm.dashboard</field>
@@ -9,14 +8,24 @@
             <form class="o_crm_custom_form o_crm_dashboard"
                   create="false" edit="false" delete="false">
                 <sheet>
+                    <field name="display_name" invisible="1"/>
                     <field name="currency_id" invisible="1"/>
 
                     <div class="o_crm_dashboard_header">
-                        <h2>CRM Dashboard</h2>
-                        <p class="text-muted">Snapshot of your pipeline. Click any tile to drill in.</p>
+                        <div class="o_crm_dashboard_header_text">
+                            <h2>CRM Dashboard</h2>
+                            <p class="text-muted">Snapshot of your pipeline. Click any tile or row to drill in.</p>
+                        </div>
+                        <div class="o_crm_dashboard_header_actions">
+                            <button name="action_refresh" type="object"
+                                    class="btn btn-secondary"
+                                    icon="fa-refresh">
+                                Refresh
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Section: Pipeline -->
+                    <!-- Section: Pipeline tiles -->
                     <div class="o_crm_dashboard_section_label">Pipeline</div>
                     <div class="o_crm_dashboard_grid">
                         <button name="action_open_inquiries" type="object"
@@ -48,7 +57,7 @@
                         </button>
                     </div>
 
-                    <!-- Section: Orders & Cash -->
+                    <!-- Section: Orders & Cash tiles -->
                     <div class="o_crm_dashboard_section_label">Orders &amp; Cash</div>
                     <div class="o_crm_dashboard_grid">
                         <button name="action_open_orders" type="object"
@@ -89,12 +98,88 @@
                             </div>
                         </button>
                     </div>
+
+                    <!-- Section: Charts row -->
+                    <div class="o_crm_dashboard_two_col">
+                        <div class="o_crm_dashboard_panel">
+                            <div class="o_crm_dashboard_panel_head">
+                                <h3>Pipeline Funnel</h3>
+                                <span class="o_crm_dashboard_panel_sub">Active leads by stage</span>
+                            </div>
+                            <field name="pipeline_funnel_html" widget="html" readonly="1"/>
+                        </div>
+                        <div class="o_crm_dashboard_panel">
+                            <div class="o_crm_dashboard_panel_head">
+                                <h3>Revenue — Last 6 Months</h3>
+                                <span class="o_crm_dashboard_panel_sub">Paid invoices, monthly</span>
+                            </div>
+                            <field name="revenue_chart_html" widget="html" readonly="1"/>
+                        </div>
+                    </div>
+
+                    <!-- Section: Activities + Top Products -->
+                    <div class="o_crm_dashboard_two_col">
+                        <div class="o_crm_dashboard_panel">
+                            <div class="o_crm_dashboard_panel_head">
+                                <h3>My Open Activities</h3>
+                                <button name="action_open_my_activities" type="object"
+                                        class="btn btn-link btn-sm">View all →</button>
+                            </div>
+                            <field name="my_activities_html" widget="html" readonly="1"/>
+                        </div>
+                        <div class="o_crm_dashboard_panel">
+                            <div class="o_crm_dashboard_panel_head">
+                                <h3>Top Products</h3>
+                                <span class="o_crm_dashboard_panel_sub">By revenue (confirmed orders)</span>
+                            </div>
+                            <field name="top_products_html" widget="html" readonly="1"/>
+                        </div>
+                    </div>
+
+                    <!-- Section: Recent Leads + Recent Quotations -->
+                    <div class="o_crm_dashboard_two_col">
+                        <div class="o_crm_dashboard_panel">
+                            <div class="o_crm_dashboard_panel_head">
+                                <h3>Recent Leads</h3>
+                                <button name="action_open_leads" type="object"
+                                        class="btn btn-link btn-sm">View all →</button>
+                            </div>
+                            <field name="recent_leads_html" widget="html" readonly="1"/>
+                        </div>
+                        <div class="o_crm_dashboard_panel">
+                            <div class="o_crm_dashboard_panel_head">
+                                <h3>Recent Quotations</h3>
+                                <button name="action_open_quotations_sent" type="object"
+                                        class="btn btn-link btn-sm">View all →</button>
+                            </div>
+                            <field name="recent_quotations_html" widget="html" readonly="1"/>
+                        </div>
+                    </div>
+
+                    <!-- Section: Outstanding Invoices + Low Stock -->
+                    <div class="o_crm_dashboard_two_col">
+                        <div class="o_crm_dashboard_panel">
+                            <div class="o_crm_dashboard_panel_head">
+                                <h3>Outstanding Invoices</h3>
+                                <button name="action_open_unpaid_invoices" type="object"
+                                        class="btn btn-link btn-sm">View all →</button>
+                            </div>
+                            <field name="recent_invoices_html" widget="html" readonly="1"/>
+                        </div>
+                        <div class="o_crm_dashboard_panel">
+                            <div class="o_crm_dashboard_panel_head">
+                                <h3>Low Stock Alerts</h3>
+                                <button name="action_open_low_stock" type="object"
+                                        class="btn btn-link btn-sm">View all →</button>
+                            </div>
+                            <field name="low_stock_html" widget="html" readonly="1"/>
+                        </div>
+                    </div>
                 </sheet>
             </form>
         </field>
     </record>
 
-    <!-- Server Action wrapping dashboard open -->
     <record id="action_crm_dashboard" model="ir.actions.server">
         <field name="name">Dashboard</field>
         <field name="model_id" ref="model_crm_dashboard"/>
@@ -102,7 +187,6 @@
         <field name="code">action = model.action_open_dashboard()</field>
     </record>
 
-    <!-- Menu: top of CRM Custom root -->
     <menuitem id="menu_crm_dashboard"
               name="Dashboard"
               parent="menu_crm_root"

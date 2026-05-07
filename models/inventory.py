@@ -67,11 +67,24 @@ class CrmInventory(models.Model):
             inv.move_ids = moves
             inv.move_count = len(moves)
 
-    @api.depends('move_ids.state', 'move_ids.signed_quantity', 'reorder_min')
+    @api.depends('product_id', 'warehouse_id', 'reorder_min')
     def _compute_quantity(self):
+        # Note: dependency on stock moves is not declared here because
+        # `move_ids` is itself a non-stored computed One2many (no inverse FK),
+        # which the dependency tracker cannot search through. Recompute is
+        # triggered explicitly from CrmStockMove.action_done / write / unlink.
+        Move = self.env['crm.stock.move']
         for inv in self:
-            done = inv.move_ids.filtered(lambda m: m.state == 'done')
-            qty = sum(done.mapped('signed_quantity'))
+            if not inv.product_id or not inv.warehouse_id:
+                inv.quantity = 0.0
+                inv.is_low_stock = False
+                continue
+            moves = Move.search([
+                ('product_id', '=', inv.product_id.id),
+                ('warehouse_id', '=', inv.warehouse_id.id),
+                ('state', '=', 'done'),
+            ])
+            qty = sum(moves.mapped('signed_quantity'))
             inv.quantity = qty
             inv.is_low_stock = (
                 inv.reorder_min > 0 and qty <= inv.reorder_min
@@ -139,6 +152,7 @@ class CrmInventory(models.Model):
 class CrmStockMove(models.Model):
     """A single stock movement: IN (receipt), OUT (delivery), or ADJUST."""
     _name = 'crm.stock.move'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'CRM Stock Move'
     _order = 'date desc, id desc'
     _rec_name = 'reference'
@@ -251,6 +265,34 @@ class CrmStockMove(models.Model):
                 raise UserError(_(
                     'Confirmed stock moves cannot be deleted — cancel-and-reverse instead.'
                 ))
+
+    def write(self, vals):
+        # If state, quantity, product or warehouse change, refresh the
+        # affected inventory rows. Inventory.quantity does not @api.depends on
+        # move_ids (computed One2many is not searchable), so we trigger here.
+        triggers = {'state', 'quantity', 'move_type', 'product_id', 'warehouse_id'}
+        affected_keys = set()
+        if triggers & set(vals.keys()):
+            for m in self:
+                if m.product_id and m.warehouse_id:
+                    affected_keys.add((m.product_id.id, m.warehouse_id.id))
+        res = super().write(vals)
+        if triggers & set(vals.keys()):
+            for m in self:
+                if m.product_id and m.warehouse_id:
+                    affected_keys.add((m.product_id.id, m.warehouse_id.id))
+            self._refresh_inventory(affected_keys)
+        return res
+
+    def _refresh_inventory(self, keys):
+        Inv = self.env['crm.inventory']
+        for product_id, warehouse_id in keys:
+            inv = Inv.search(
+                [('product_id', '=', product_id), ('warehouse_id', '=', warehouse_id)],
+                limit=1,
+            )
+            if inv:
+                inv._compute_quantity()
 
 
 class CrmStockAdjustWizard(models.TransientModel):

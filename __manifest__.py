@@ -29,6 +29,7 @@
         'views/inventory_views.xml',
         'views/dashboard_views.xml',
         'views/res_config_settings_views.xml',
+        'data/menu_hide.xml',
         'reports/quotation_report.xml',
         'reports/sale_order_report.xml',
         'reports/invoice_report.xml',
@@ -36,6 +37,7 @@
     'assets': {
         'web.assets_backend': [
             'crm_custom/static/src/scss/crm_custom.scss',
+            'crm_custom/static/src/js/dashboard_form.js',
         ],
     },
     'license': 'LGPL-3',
